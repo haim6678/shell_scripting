@@ -1,18 +1,27 @@
-#how to check correct api
-#how to find sdk location
 
 #start scrpit
 echo "welcome to bash scripting";
 
+#------------------------------------------------setup---------------------
 
 #pul the code
 git clone https://github.com/haim6678/shell_scripting.git
-export ANDROID_HOME=$HOME/Android/Sdk/
+
+#get the sdk path
+temp=$(env |grep ANDROID_HOME)
+path=$(echo "$temp" | rev | cut -d"=" -f1  | rev)
+if [ "$path" == "" ];then
+  echo "undfined sdk";
+  exit
+fi
+
 echo "finish cloning"
 printf "\n"
 
+#----------------------------------run the emulator------------------------
+
 #go to the emulator directory
-cd ~/Android/Sdk/emulator 
+cd $path/emulator 
 
 #find the emulators on the device
 result=$(./emulator -list-avds)
@@ -25,7 +34,7 @@ echo $emunane
 #go to android files folder
 cd ~/shell_scripting/files
 
-#build the project step by step
+#----------------------------------build the project-----------------
 
 #start with workspace file
 export WORKSPACE=$HOME/shell_scripting/files
@@ -79,19 +88,20 @@ else
     echo "build failed"
     exit 
 fi
-
 printf "\n"
-sleep 40
+
+#------------------------------------------------install section---------------
 
 #find if the emulator is runnig and wait for it to run
+cd $path/platform-tools
 
-
-#if pgrep -x "$emunane" > /dev/null
-#then
- #   echo "Running"
-#else
- #   echo "Stopped"
-#fi
+r=$(./adb shell getprop sys.boot_completed | tr -d '\r') 
+while [ "$r" != "1" ];do
+	printf "wait for device "
+	sleep 2
+	r=$(./adb shell getprop sys.boot_completed | tr -d '\r')
+done;
+cd $WORKSPACE
 
 #install the app on the device
 bazel mobile-install //android:android
@@ -106,8 +116,11 @@ else
     exit 
 fi
 
+#---------------------------------------------run----------------------------
 #go to adb directory
-cd ~/Android/Sdk/platform-tools
+cd $path/platform-tools
+
 #run the app
 ./adb shell am start -n com.google.bazel.example.android/com.google.bazel.example.android.activities.MainActivity
+
 echo "the end"
