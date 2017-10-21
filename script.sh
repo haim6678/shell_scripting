@@ -1,40 +1,46 @@
-
-
+#how to check correct api
+#how to find sdk location
 
 
 echo "welcome to bash scripting";
 
+result=$(./emulator -list-avds)
+
+emunane=$(echo ${result[0]} |cut -d " " -f1)
+
+echo $emunane
+
 #start scrpit
-echo "start gm exe";
+
+#pul the code
+git clone https://github.com/haim6678/shell_scripting.git
+
+export ANDROID_HOME=$HOME/Android/Sdk/
+
 #go to the emulator directory
 cd ~/Android/Sdk/emulator 
 #start the emulatur
-#./emulator -avd Nexus_5X_API_25 &
+./emulator -avd $emunane &
 
-
-#clone the project folder
-
-#go to android folder
-cd ~/GM_git_folder/files
+#go to android files folder
+cd ~/shell_scripting/files
 
 #build the project step by step
 #start with workspace file
-export WORKSPACE=$HOME/GM_git_folder/files
+export WORKSPACE=$HOME/shell_scripting/files
 touch $WORKSPACE/WORKSPACE
 
 #write to the file
-
 echo "android_sdk_repository(
     name = \"androidsdk\"
 )
 " >WORKSPACE 
 
-cd ~/GM_git_folder/files/android
-
 #create build file
+cd ~/shell_scripting/files/android
 touch $WORKSPACE/android/BUILD
 
-#go to the directory
+#go to the file build directory
 cd $WORKSPACE/android
 
 #write the build commands
@@ -55,33 +61,37 @@ echo "android_binary(
     deps = [\":activities\"],
 )" >> BUILD
 
-#go back to workspace
+#go back to workspace directory
 cd $WORKSPACE
 #build the program
 bazel build //android:android
 
-sleep 5
-
+#find if build failed
 result=$?
 
 if [ "$result" -eq "0" ];then
   echo "build success";
 else
+    adb -s "$emunane" emu kill
     echo "build failed"
     exit 
 fi
 
 printf "\n"
+sleep 5
 
-if pgrep -x "emulator" > /dev/null
+#find if the emulator is runnig
+if pgrep -x "$emunane" > /dev/null
 then
     echo "Running"
 else
     echo "Stopped"
 fi
 
+#install the app on the device
 bazel mobile-install //android:android
 
+#find if install failed
 installresult=$?
 
 if [ "$installresult" -eq "0" ];then
@@ -91,4 +101,6 @@ else
     exit 
 fi
 
+#run the app
+./adb shell am start -n com.google.bazel.example.android/com.google.bazel.example.android.activities.MainActivity
 echo "the end"
