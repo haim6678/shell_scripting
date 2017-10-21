@@ -1,24 +1,24 @@
 #how to check correct api
 #how to find sdk location
 
-
+#start scrpit
 echo "welcome to bash scripting";
 
-result=$(./emulator -list-avds)
-
-emunane=$(echo ${result[0]} |cut -d " " -f1)
-
-echo $emunane
-
-#start scrpit
 
 #pul the code
 git clone https://github.com/haim6678/shell_scripting.git
-
 export ANDROID_HOME=$HOME/Android/Sdk/
+echo "finish cloning"
+printf "\n"
 
 #go to the emulator directory
 cd ~/Android/Sdk/emulator 
+
+#find the emulators on the device
+result=$(./emulator -list-avds)
+emunane=$(echo ${result[0]} |cut -d " " -f1)
+echo $emunane
+
 #start the emulatur
 ./emulator -avd $emunane &
 
@@ -26,6 +26,7 @@ cd ~/Android/Sdk/emulator
 cd ~/shell_scripting/files
 
 #build the project step by step
+
 #start with workspace file
 export WORKSPACE=$HOME/shell_scripting/files
 touch $WORKSPACE/WORKSPACE
@@ -63,12 +64,14 @@ echo "android_binary(
 
 #go back to workspace directory
 cd $WORKSPACE
+
 #build the program
 bazel build //android:android
 
 #find if build failed
 result=$?
-
+echo "finish building"
+printf "\n"
 if [ "$result" -eq "0" ];then
   echo "build success";
 else
@@ -78,15 +81,17 @@ else
 fi
 
 printf "\n"
-sleep 5
+sleep 40
 
-#find if the emulator is runnig
-if pgrep -x "$emunane" > /dev/null
-then
-    echo "Running"
-else
-    echo "Stopped"
-fi
+#find if the emulator is runnig and wait for it to run
+
+
+#if pgrep -x "$emunane" > /dev/null
+#then
+ #   echo "Running"
+#else
+ #   echo "Stopped"
+#fi
 
 #install the app on the device
 bazel mobile-install //android:android
@@ -101,6 +106,8 @@ else
     exit 
 fi
 
+#go to adb directory
+cd ~/Android/Sdk/platform-tools
 #run the app
 ./adb shell am start -n com.google.bazel.example.android/com.google.bazel.example.android.activities.MainActivity
 echo "the end"
